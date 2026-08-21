@@ -7,9 +7,12 @@ const MUSCLE_COLORS = {
   calves:'#f87171', biceps:'#a3e635', trapezius:'#94a3b8',
 };
 
-function ExerciseRow({ ex, index }) {
+// One card per exercise group (all sets of the same exercise)
+function ExerciseGroup({ exList, index, targetMuscles }) {
   const [videoOpen, setVideoOpen] = useState(false);
-  const primary = ex.primary[0] || 'abs';
+  const ex      = exList[0];
+  const sets    = exList.length;
+  const primary = ex.targetMuscle || ex.primary[0] || 'abs';
   const color   = MUSCLE_COLORS[primary] || '#94a3b8';
   const tag     = ex.static ? 'hold' : ex.isUnilateral ? 'L+R' : null;
   const equip   = [
@@ -18,7 +21,9 @@ function ExerciseRow({ ex, index }) {
     ex.machines   && 'machine',
     ex.resistance && 'band',
   ].filter(Boolean).join(' / ') || '—';
-
+  const visibleSecondary = (ex.secondary || []).filter(
+    m => !targetMuscles?.size || targetMuscles.has(m)
+  ).slice(0, 2);
   const hasVideo = !!ex.video_url;
 
   return (
@@ -32,15 +37,15 @@ function ExerciseRow({ ex, index }) {
             {tag && <span className="ex-tag">{tag}</span>}
           </div>
           <div className="ex-meta">
-            <span className="ex-muscle" style={{ color, background: color + '18' }}>{primary.replace('_',' ')}</span>
-            {ex.secondary.slice(0,2).map(m => (
-              <span key={m} className="ex-muscle secondary">{m.replace('_',' ')}</span>
+            <span className="ex-muscle" style={{ color, background: color + '18' }}>{primary.replace(/_/g,' ')}</span>
+            {visibleSecondary.map(m => (
+              <span key={m} className="ex-muscle secondary">{m.replace(/_/g,' ')}</span>
             ))}
             <span className="ex-equip">{equip}</span>
           </div>
         </div>
         <div className="ex-right">
-          <span className="ex-dur">{ex.assignedDuration}s</span>
+          <span className="ex-sets-badge">{sets} × {ex.assignedDuration}s</span>
           <span className="ex-mets">mets {ex.mets}</span>
           {hasVideo ? (
             <button
@@ -66,6 +71,7 @@ function ExerciseRow({ ex, index }) {
             loop
             muted
             playsInline
+            controls
             className="ex-video"
           />
         </div>
@@ -106,10 +112,27 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
   const totalMin = Math.floor(totalSec / 60);
   const totalS   = totalSec % 60;
 
-  // Muscle distribution
+  // Group consecutive sets of the same exercise into one card
+  const exerciseGroups = [];
+  for (const ex of exercises) {
+    const last = exerciseGroups[exerciseGroups.length - 1];
+    if (last && last[0].name === ex.name) {
+      last.push(ex);
+    } else {
+      exerciseGroups.push([ex]);
+    }
+  }
+
+  // Unique exercise count (pairs share one slot)
+  const uniqueBaseNames = new Set(
+    exercises.map(e => e.name.replace(/\s*\((Right|Left)\)/g, '').trim())
+  );
+  const uniqueCount = uniqueBaseNames.size;
+
+  // Muscle distribution (use targetMuscle so it reflects user's selection)
   const muscleCount = {};
   for (const e of exercises) {
-    const m = e.primary[0] || 'abs';
+    const m = e.targetMuscle || e.primary[0] || 'abs';
     muscleCount[m] = (muscleCount[m] || 0) + 1;
   }
 
@@ -120,8 +143,12 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
         <div className="result-header-top">
           <div className="result-summary">
           <div className="summary-stat">
-            <span className="stat-val">{exercises.length}</span>
+            <span className="stat-val">{exerciseGroups.length}</span>
             <span className="stat-label">exercises</span>
+          </div>
+          <div className="summary-stat">
+            <span className="stat-val">{exercises.length}</span>
+            <span className="stat-label">sets</span>
           </div>
           <div className="summary-stat">
             <span className="stat-val">{totalMin}m{totalS > 0 ? `${totalS}s` : ''}</span>
@@ -136,7 +163,6 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
             <span className="stat-label">target</span>
           </div>
         </div>
-          <button className="new-workout-btn" onClick={onBuild}>⚡ New Workout</button>
         </div>
         <div className="muscle-dist">
           {Object.entries(muscleCount).map(([m, count]) => {
@@ -152,10 +178,19 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
 
       {/* Exercise list */}
       <div className="ex-list">
-        {exercises.length === 0 ? (
+        {exerciseGroups.length === 0 ? (
           <div className="no-results">No exercises match your current filters. Try relaxing some constraints.</div>
         ) : (
-          exercises.map((ex, i) => <ExerciseRow key={ex.id || ex.name + i} ex={ex} index={i} />)
+          exerciseGroups.map((group, i) => (
+            <React.Fragment key={group[0].name + i}>
+              <ExerciseGroup exList={group} index={i} targetMuscles={params.targetMuscles} />
+              {i < exerciseGroups.length - 1 && (
+                <div className="rest-separator">
+                  <span className="rest-label">REST — {group[0].restSec ?? result.restSec ?? 30}s</span>
+                </div>
+              )}
+            </React.Fragment>
+          ))
         )}
       </div>
 
