@@ -13,7 +13,7 @@ const MUSCLE_COLORS = {
   calves:'#f87171', biceps:'#a3e635',
 };
 
-export default function FilterPanel({ params, onChange, onBuild, poolSize }) {
+export default function FilterPanel({ params, onChange, onBuild, onRefreshRules, rulesStatus, poolSize }) {
   const set = (key, val) => onChange({ ...params, [key]: val });
 
   const toggleSet = (key, val) => {
@@ -150,6 +150,17 @@ export default function FilterPanel({ params, onChange, onBuild, poolSize }) {
 
       <button className="build-btn" onClick={onBuild}>
         ⚡ Build Workout
+      </button>
+
+      <button
+        className={`rules-btn ${rulesStatus || ''}`}
+        onClick={onRefreshRules}
+        disabled={rulesStatus === 'loading'}
+      >
+        {rulesStatus === 'loading' && '⏳ Loading…'}
+        {rulesStatus === 'ok'      && '✓ Rules applied'}
+        {rulesStatus === 'error'   && '✗ rules.json not found'}
+        {!rulesStatus              && '↺ Refresh Rules'}
       </button>
     </div>
   );
