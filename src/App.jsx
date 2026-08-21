@@ -7,6 +7,7 @@ import './App.css';
 
 const DEFAULT_PARAMS = {
   bmiValue: 22.5,
+  gender: 'male',
   fitnessLevel: 'beginner',
   strictBeginner: true,
   equipment: new Set(['bodyweight']),
@@ -76,7 +77,31 @@ export default function App() {
     const r = buildWorkout(exercises, params, rules);
     setResult(r);
     if (r.exercises.length > 0) {
-      setHistory(prev => [...prev.slice(-9), { params: { ...params }, result: r, timestamp: Date.now() }]);
+      const entry = { params: { ...params }, result: r, timestamp: Date.now() };
+      setHistory(prev => [...prev.slice(-9), entry]);
+
+      // Save to local log file (non-blocking — fails silently if server not ready)
+      const groupedExercises = [];
+      for (const ex of r.exercises) {
+        const last = groupedExercises[groupedExercises.length - 1];
+        if (last && last.name === ex.name) { last.sets++; }
+        else groupedExercises.push({ name: ex.name, sets: 1, duration: ex.assignedDuration, muscle: ex.targetMuscle });
+      }
+      fetch('/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fitnessLevel:  params.fitnessLevel,
+          workoutType:   params.workoutType,
+          durationMin:   params.durationMin,
+          totalSec:      r.totalSec,
+          restSec:       r.restSec,
+          equipment:     [...params.equipment],
+          targetMuscles: [...params.targetMuscles],
+          injuries:      [...params.injuries],
+          exercises:     groupedExercises,
+        }),
+      }).catch(() => {}); // silent — UI never depends on this
     }
   };
 
@@ -88,7 +113,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="logo">MB Workout Builder</div>
+        <div className="logo">Viktor's Best Builder</div>
         <div className="header-meta">
           {exercises.length.toLocaleString()} exercises in database
         </div>
@@ -109,6 +134,7 @@ export default function App() {
           history={history}
           onRestore={handleRestore}
           onBuild={handleBuild}
+          gender={params.gender}
         />
       </main>
     </div>
