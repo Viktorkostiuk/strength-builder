@@ -49,6 +49,20 @@ export default function FilterPanel({ params, onChange, onBuild, onRefreshRules,
         </div>
       </div>
 
+      {/* Gender */}
+      <div className="field-group">
+        <label className="field-label">Gender</label>
+        <div className="btn-group">
+          {['male','female'].map(g => (
+            <button key={g}
+              className={`toggle-btn ${params.gender === g ? 'active' : ''}`}
+              onClick={() => set('gender', g)}>
+              {g === 'male' ? '♂ Male' : '♀ Female'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Fitness Level */}
       <div className="field-group">
         <label className="field-label">Fitness Level</label>

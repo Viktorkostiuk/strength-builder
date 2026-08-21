@@ -1,0 +1,289 @@
+{
+  "workouts": [
+    {
+      "id": 1787319794228,
+      "savedAt": "2026-08-21T13:43:14.228Z",
+      "fitnessLevel": "intermediate",
+      "workoutType": "strength",
+      "durationMin": 35,
+      "totalSec": 2054,
+      "restSec": 30,
+      "equipment": [
+        "bodyweight",
+        "weights"
+      ],
+      "targetMuscles": [
+        "glutes",
+        "quadriceps",
+        "hamstrings"
+      ],
+      "injuries": [],
+      "exercises": [
+        {
+          "name": "Dumbbell Clean",
+          "sets": 4,
+          "duration": 40,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Bodyweight Good Morning",
+          "sets": 2,
+          "duration": 90,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell Clean and Press",
+          "sets": 4,
+          "duration": 40,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Barbell Sumo Deadlift",
+          "sets": 2,
+          "duration": 40,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell One Arm Snatch (Left)",
+          "sets": 4,
+          "duration": 20,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell One Arm Snatch (Right)",
+          "sets": 4,
+          "duration": 20,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Plie Squat",
+          "sets": 2,
+          "duration": 40,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell Single Power Clean (Left)",
+          "sets": 1,
+          "duration": 30,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Single Power Clean (Right)",
+          "sets": 1,
+          "duration": 30,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Kettlebell Lunge Pass Through",
+          "sets": 1,
+          "duration": 50,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Right)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Left)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "quadriceps"
+        }
+      ]
+    },
+    {
+      "id": 1787320218207,
+      "savedAt": "2026-08-21T13:50:18.207Z",
+      "fitnessLevel": "intermediate",
+      "workoutType": "strength",
+      "durationMin": 35,
+      "totalSec": 1994,
+      "restSec": 30,
+      "equipment": [
+        "bodyweight",
+        "weights"
+      ],
+      "targetMuscles": [
+        "glutes",
+        "quadriceps",
+        "hamstrings"
+      ],
+      "injuries": [],
+      "exercises": [
+        {
+          "name": "Dumbbell Clean and Press",
+          "sets": 4,
+          "duration": 40,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Clean",
+          "sets": 4,
+          "duration": 40,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Bodyweight Good Morning",
+          "sets": 1,
+          "duration": 90,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell One Arm Snatch (Left)",
+          "sets": 4,
+          "duration": 20,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell One Arm Snatch (Right)",
+          "sets": 4,
+          "duration": 20,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Plie Squat",
+          "sets": 3,
+          "duration": 40,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Barbell Sumo Deadlift",
+          "sets": 2,
+          "duration": 40,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell Hang Power Clean",
+          "sets": 1,
+          "duration": 40,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Single Power Clean (Left)",
+          "sets": 1,
+          "duration": 30,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Dumbbell Single Power Clean (Right)",
+          "sets": 1,
+          "duration": 30,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Right)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Left)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "quadriceps"
+        }
+      ]
+    },
+    {
+      "id": 1787321579204,
+      "savedAt": "2026-08-21T14:12:59.204Z",
+      "fitnessLevel": "intermediate",
+      "workoutType": "strength",
+      "durationMin": 30,
+      "totalSec": 1754,
+      "restSec": 30,
+      "equipment": [
+        "bodyweight",
+        "weights"
+      ],
+      "targetMuscles": [
+        "quadriceps",
+        "glutes",
+        "hamstrings"
+      ],
+      "injuries": [],
+      "exercises": [
+        {
+          "name": "Dumbbell One Arm Snatch (Left)",
+          "sets": 4,
+          "duration": 20,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell One Arm Snatch (Right)",
+          "sets": 4,
+          "duration": 20,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Plie Squat",
+          "sets": 3,
+          "duration": 40,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell Clean and Press",
+          "sets": 1,
+          "duration": 40,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Clean",
+          "sets": 4,
+          "duration": 40,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Bodyweight Good Morning",
+          "sets": 1,
+          "duration": 90,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Barbell Sumo Deadlift",
+          "sets": 1,
+          "duration": 40,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Dumbbell Hang Power Clean",
+          "sets": 1,
+          "duration": 40,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Dumbbell Single Power Clean and Jerk (Left)",
+          "sets": 1,
+          "duration": 30,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Dumbbell Single Power Clean and Jerk (Right)",
+          "sets": 1,
+          "duration": 30,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Press Under",
+          "sets": 1,
+          "duration": 40,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Right)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Left)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "quadriceps"
+        }
+      ]
+    }
+  ]
+}

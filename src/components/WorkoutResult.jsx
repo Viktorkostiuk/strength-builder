@@ -8,7 +8,7 @@ const MUSCLE_COLORS = {
 };
 
 // One card per exercise group (all sets of the same exercise)
-function ExerciseGroup({ exList, index, targetMuscles }) {
+function ExerciseGroup({ exList, index, targetMuscles, gender }) {
   const [videoOpen, setVideoOpen] = useState(false);
   const ex      = exList[0];
   const sets    = exList.length;
@@ -24,7 +24,11 @@ function ExerciseGroup({ exList, index, targetMuscles }) {
   const visibleSecondary = (ex.secondary || []).filter(
     m => !targetMuscles?.size || targetMuscles.has(m)
   ).slice(0, 2);
-  const hasVideo = !!ex.video_url;
+
+  // Use female video if gender=female and available, otherwise fall back to male
+  const videoUrl   = (gender === 'female' && ex.female_video_url)   ? ex.female_video_url   : ex.video_url;
+  const previewUrl = (gender === 'female' && ex.female_preview_url) ? ex.female_preview_url : ex.preview_url;
+  const hasVideo   = !!videoUrl;
 
   return (
     <div className="ex-row-wrap">
@@ -64,9 +68,9 @@ function ExerciseGroup({ exList, index, targetMuscles }) {
       {videoOpen && hasVideo && (
         <div className="ex-video-wrap">
           <video
-            key={ex.video_url}
-            src={ex.video_url}
-            poster={ex.preview_url || undefined}
+            key={videoUrl}
+            src={videoUrl}
+            poster={previewUrl || undefined}
             autoPlay
             loop
             muted
@@ -97,7 +101,7 @@ function HistoryItem({ entry, index, onRestore }) {
   );
 }
 
-export default function WorkoutResult({ result, params, history, onRestore, onBuild }) {
+export default function WorkoutResult({ result, params, history, onRestore, onBuild, gender }) {
   if (!result) {
     return (
       <div className="result-panel empty">
@@ -183,7 +187,7 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
         ) : (
           exerciseGroups.map((group, i) => (
             <React.Fragment key={group[0].name + i}>
-              <ExerciseGroup exList={group} index={i} targetMuscles={params.targetMuscles} />
+              <ExerciseGroup exList={group} index={i} targetMuscles={params.targetMuscles} gender={gender} />
               {i < exerciseGroups.length - 1 && (
                 <div className="rest-separator">
                   <span className="rest-label">REST — {group[0].restSec ?? result.restSec ?? 30}s</span>
