@@ -54,6 +54,9 @@ export const DEFAULT_RULES = {
   allowPlyometricForBeginner: false,
   cvdMaxMets: 6.0,
   cvdNoPlyometric: true,
+  obeseBmiThreshold: 30,
+  obeseNoPlyometric: true,
+  obeseNoHighImpact: true,
   durationCapMap: { 15: 1, 30: 2, 45: 3, 60: 4 },
   // Rest time between exercises
   restTimeBeginner_strength: 60,
@@ -61,49 +64,135 @@ export const DEFAULT_RULES = {
   restTimeDefault: 30,
 };
 
+// Strip (Right)/(Left) to get base name for uniqueness/pairing
+const baseName = name => name.replace(/\s*\((Right|Left)\)/g, '').trim();
+const isUnilateralName = name => name.includes('(Right)') || name.includes('(Left)');
+const pairName = name => name.includes('(Right)')
+  ? name.replace('(Right)', '(Left)')
+  : name.replace('(Left)', '(Right)');
+
+/**
+ * Shared eligibility filter: equipment, fitness level, injuries,
+ * BMI safety and workout-type restrictions.
+ * Single source of truth for getPoolSize, buildWorkout and swapExercise.
+ */
+function passesFilters(e, params, rules) {
+  const { fitnessLevel, equipment, injuries, workoutType, strictBeginner, bmiValue } = params;
+  const bmiObese = (bmiValue ?? 0) >= (rules.obeseBmiThreshold ?? 30);
+
+  const hasEquip =
+    (equipment.has('bodyweight') && e.bodyweight) ||
+    (equipment.has('weights')    && e.weights)    ||
+    (equipment.has('machines')   && e.machines)   ||
+    (equipment.has('resistance') && e.resistance);
+  if (!hasEquip) return false;
+
+  if (fitnessLevel === 'beginner') {
+    if (strictBeginner && !e.level1 && !e.level2) return false;
+    if (!strictBeginner && !e.beginner) return false;
+    if (e.mets > rules.beginnerMaxMets) return false;
+    if (!rules.allowPlyometricForBeginner && e.plyometric) return false;
+  } else if (fitnessLevel === 'intermediate') {
+    if (!e.beginner && !e.intermediate) return false;
+    if (e.mets > rules.intermediateMaxMets) return false;
+  } else {
+    if (!e.advanced) return false;
+    if (e.mets > rules.advancedMaxMets) return false;
+  }
+
+  if (injuries.has('knee')     && e.knee)         return false;
+  if (injuries.has('ankle')    && e.ankle)        return false;
+  if (injuries.has('hip')      && e.hip)          return false;
+  if (injuries.has('shoulder') && e.shoulder_inj) return false;
+  if (injuries.has('back')     && e.back_pain)    return false;
+  if (injuries.has('cvd')      && e.cvd)          return false;
+  if (injuries.has('cvd')      && e.mets > rules.cvdMaxMets) return false;
+  if (injuries.has('cvd')      && rules.cvdNoPlyometric && e.plyometric) return false;
+
+  if (bmiObese && rules.obeseNoPlyometric && e.plyometric) return false;
+  if (bmiObese && rules.obeseNoHighImpact && e.knee) return false;
+
+  if (workoutType === 'strength' && e.cardio && !e.strength_set) return false;
+  if (workoutType === 'cardio'   && !e.cardio) return false;
+  return true;
+}
+
 // Lightweight pool size for live preview
 export function getPoolSize(exercises, params, rulesOverride = {}) {
   const rules = { ...DEFAULT_RULES, ...rulesOverride };
-  const { fitnessLevel, equipment, injuries, workoutType, strictBeginner } = params;
-  return exercises.filter(e => {
-    const hasEquip =
-      (equipment.has('bodyweight') && e.bodyweight) ||
-      (equipment.has('weights')    && e.weights)    ||
-      (equipment.has('machines')   && e.machines)   ||
-      (equipment.has('resistance') && e.resistance);
-    if (!hasEquip) return false;
-    if (fitnessLevel === 'beginner') {
-      if (strictBeginner && !e.level1 && !e.level2) return false;
-      if (!strictBeginner && !e.beginner) return false;
-      if (e.mets > rules.beginnerMaxMets) return false;
-      if (!rules.allowPlyometricForBeginner && e.plyometric) return false;
-    } else if (fitnessLevel === 'intermediate') {
-      if (!e.beginner && !e.intermediate) return false;
-      if (e.mets > rules.intermediateMaxMets) return false;
-    } else {
-      if (!e.advanced) return false;
-    }
-    if (injuries.has('knee')     && e.knee)         return false;
-    if (injuries.has('ankle')    && e.ankle)        return false;
-    if (injuries.has('hip')      && e.hip)          return false;
-    if (injuries.has('shoulder') && e.shoulder_inj) return false;
-    if (injuries.has('back')     && e.back_pain)    return false;
-    if (injuries.has('cvd')      && e.cvd)          return false;
-    if (injuries.has('cvd')      && e.mets > rules.cvdMaxMets) return false;
-    if (injuries.has('cvd')      && rules.cvdNoPlyometric && e.plyometric) return false;
-    if (workoutType === 'strength' && e.cardio && !e.strength_set) return false;
-    if (workoutType === 'cardio'   && !e.cardio) return false;
+  return exercises.filter(e => passesFilters(e, params, rules)).length;
+}
+
+/**
+ * Swap one exercise (all its sets) for a different one with:
+ * - the same target muscle
+ * - the same duration, sets and rest (total time unchanged)
+ * - the same health/level/equipment restrictions (passesFilters)
+ * - matching kind: unilateral↔unilateral (both sides swapped), stretch↔stretch
+ * Returns a new exercises array, or null if no alternative exists.
+ */
+export function swapExercise(exercises, params, rulesOverride, currentList, targetName) {
+  const rules = { ...DEFAULT_RULES, ...rulesOverride };
+  const bn = baseName(targetName);
+  const groupEntries = currentList.filter(e => baseName(e.name) === bn);
+  if (!groupEntries.length) return null;
+
+  const sample    = groupEntries[0];
+  const isUni     = isUnilateralName(sample.name);
+  const isStretch = isStretchExercise(sample);
+  const usedBase  = new Set(currentList.map(e => baseName(e.name)));
+
+  // Sets of one exercise can be credited to different muscles (multi-primary
+  // exercises). Ideally the replacement covers all of them; fall back to the
+  // group's main muscle if nothing does.
+  const muscles = [...new Set(groupEntries.map(e => e.targetMuscle || e.primary?.[0] || 'abs'))];
+
+  const pool   = exercises.filter(e => passesFilters(e, params, rules));
+  const byName = {};
+  for (const e of pool) byName[e.name] = e;
+
+  const findCandidates = required => pool.filter(e => {
+    if (usedBase.has(baseName(e.name))) return false;             // not already in workout
+    if (!required.every(m => (e.primary || []).includes(m))) return false; // same target zone(s)
+    if (isStretchExercise(e) !== isStretch) return false;         // stretch stays stretch
+    if (isUnilateralName(e.name) !== isUni) return false;         // keep L+R structure
+    if (isUni && !byName[pairName(e.name)]) return false;         // pair must be eligible too
     return true;
-  }).length;
+  });
+
+  let candidates = findCandidates(muscles);
+  let coversAll  = true;
+  if (!candidates.length && muscles.length > 1) {
+    candidates = findCandidates([muscles[0]]);
+    coversAll  = false;
+  }
+  if (!candidates.length) return null;
+
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+
+  // Replace in place: positions, sets, durations and rest all preserved
+  return currentList.map(old => {
+    if (baseName(old.name) !== bn) return old;
+    let repl = pick;
+    if (isUni) {
+      const oldSide  = old.name.includes('(Left)')  ? 'Left' : 'Right';
+      const pickSide = pick.name.includes('(Left)') ? 'Left' : 'Right';
+      repl = oldSide === pickSide ? pick : byName[pairName(pick.name)];
+    }
+    return {
+      ...repl,
+      assignedDuration: old.assignedDuration,
+      restSec:          old.restSec,
+      isUnilateral:     isUni,
+      targetMuscle:     coversAll ? (old.targetMuscle || muscles[0]) : muscles[0],
+    };
+  });
 }
 
 export function buildWorkout(exercises, params, rulesOverride = {}) {
   const rules = { ...DEFAULT_RULES, ...rulesOverride };
 
-  const {
-    fitnessLevel, equipment, injuries,
-    targetMuscles, workoutType, durationMin, strictBeginner,
-  } = params;
+  const { fitnessLevel, targetMuscles, workoutType, durationMin } = params;
 
   const targetSec       = durationMin * 60;
   const TRANSITION      = rules.transitionSec;
@@ -133,42 +222,8 @@ export function buildWorkout(exercises, params, rulesOverride = {}) {
     ? (rules.maxStretchesCardio ?? 3)
     : (rules.maxStretchesPerWorkout ?? 2);
 
-  // ── 1. Filter pool ──────────────────────────────────────────────────
-  const pool = exercises.filter(e => {
-    const hasEquip =
-      (equipment.has('bodyweight') && e.bodyweight) ||
-      (equipment.has('weights')    && e.weights)    ||
-      (equipment.has('machines')   && e.machines)   ||
-      (equipment.has('resistance') && e.resistance);
-    if (!hasEquip) return false;
-
-    if (fitnessLevel === 'beginner') {
-      if (strictBeginner && !e.level1 && !e.level2) return false;
-      if (!strictBeginner && !e.beginner) return false;
-      if (e.mets > rules.beginnerMaxMets) return false;
-      if (!rules.allowPlyometricForBeginner && e.plyometric) return false;
-    } else if (fitnessLevel === 'intermediate') {
-      if (!e.beginner && !e.intermediate) return false;
-      if (e.mets > rules.intermediateMaxMets) return false;
-    } else {
-      if (!e.advanced) return false;
-      if (e.mets > rules.advancedMaxMets) return false;
-    }
-
-    if (injuries.has('knee')     && e.knee)         return false;
-    if (injuries.has('ankle')    && e.ankle)        return false;
-    if (injuries.has('hip')      && e.hip)          return false;
-    if (injuries.has('shoulder') && e.shoulder_inj) return false;
-    if (injuries.has('back')     && e.back_pain)    return false;
-    if (injuries.has('cvd')      && e.cvd)          return false;
-    if (injuries.has('cvd')      && e.mets > rules.cvdMaxMets) return false;
-    if (injuries.has('cvd')      && rules.cvdNoPlyometric && e.plyometric) return false;
-
-    if (workoutType === 'strength' && e.cardio && !e.strength_set) return false;
-    if (workoutType === 'cardio'   && !e.cardio) return false;
-
-    return true;
-  });
+  // ── 1. Filter pool (shared eligibility rules) ───────────────────────
+  const pool = exercises.filter(e => passesFilters(e, params, rules));
 
   // ── 2. Sort compound-first ──────────────────────────────────────────
   const sorted = rules.compoundFirst
@@ -211,9 +266,6 @@ export function buildWorkout(exercises, params, rulesOverride = {}) {
   let noProgress   = 0;
   const GIVE_UP    = muscleOrder.length * 6;
   let lastMuscle   = null;
-
-  // Strip (Right)/(Left) to get base name for uniqueness counting
-  const baseName = name => name.replace(/\s*\((Right|Left)\)/g, '').trim();
 
   // Reserve time at end for stretch post-pass (max 45s per stretch + gap)
   const stretchReserve = rules.stretchingAtEndsOnly
@@ -351,5 +403,7 @@ export function buildWorkout(exercises, params, rulesOverride = {}) {
   }
   const finalResult = [...orderedNames.flatMap(n => grouped[n]), ...stretches];
 
-  return { exercises: finalResult, totalSec: total, poolSize: pool.length, restSec: REST_SEC };
+  // No rest/transition after the final exercise — don't count it in the total
+  const totalSec = result.length ? total - GAP : 0;
+  return { exercises: finalResult, totalSec, poolSize: pool.length, restSec: REST_SEC };
 }

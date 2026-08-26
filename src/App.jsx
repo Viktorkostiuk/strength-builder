@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import exercises from './exercises.json';
 import FilterPanel from './components/FilterPanel';
 import WorkoutResult from './components/WorkoutResult';
-import { buildWorkout, getPoolSize } from './utils/buildWorkout';
+import { buildWorkout, getPoolSize, swapExercise } from './utils/buildWorkout';
 import './App.css';
 
 const DEFAULT_PARAMS = {
@@ -105,6 +105,16 @@ export default function App() {
     }
   };
 
+  // Swap one exercise for another with the same muscle/duration/restrictions.
+  // Returns false when no alternative exists (button shows brief feedback).
+  const handleSwap = (name) => {
+    if (!result) return false;
+    const swapped = swapExercise(exercises, params, rules, result.exercises, name);
+    if (!swapped) return false;
+    setResult({ ...result, exercises: swapped });
+    return true;
+  };
+
   const handleRestore = (entry) => {
     setParams(entry.params);
     setResult(entry.result);
@@ -133,7 +143,7 @@ export default function App() {
           params={params}
           history={history}
           onRestore={handleRestore}
-          onBuild={handleBuild}
+          onSwap={handleSwap}
           gender={params.gender}
         />
       </main>

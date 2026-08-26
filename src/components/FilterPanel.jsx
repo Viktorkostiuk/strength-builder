@@ -18,7 +18,8 @@ export default function FilterPanel({ params, onChange, onBuild, onRefreshRules,
 
   const toggleSet = (key, val) => {
     const next = new Set(params[key]);
-    next.has(val) ? next.delete(val) : next.add(val);
+    if (next.has(val)) next.delete(val);
+    else next.add(val);
     set(key, next);
   };
 
@@ -158,11 +159,15 @@ export default function FilterPanel({ params, onChange, onBuild, onRefreshRules,
         </div>
       </div>
 
-      <div className="pool-info">
-        {poolSize !== null && <span>{poolSize} exercises match filters</span>}
+      <div className={`pool-info ${poolSize === 0 ? 'none' : (poolSize !== null && poolSize < 15) ? 'low' : ''}`}>
+        {poolSize !== null && (
+          poolSize === 0
+            ? <span>No exercises match — relax your filters</span>
+            : <span>{poolSize} exercises match filters{poolSize < 15 ? ' — small pool' : ''}</span>
+        )}
       </div>
 
-      <button className="build-btn" onClick={onBuild}>
+      <button className="build-btn" onClick={onBuild} disabled={poolSize === 0}>
         ⚡ Build Workout
       </button>
 
@@ -173,7 +178,7 @@ export default function FilterPanel({ params, onChange, onBuild, onRefreshRules,
       >
         {rulesStatus === 'loading' && '⏳ Loading…'}
         {rulesStatus === 'ok'      && '✓ Rules applied'}
-        {rulesStatus === 'error'   && '✗ rules.json not found'}
+        {rulesStatus === 'error'   && '✗ WORKOUT_RULES.md not found'}
         {!rulesStatus              && '↺ Refresh Rules'}
       </button>
     </div>

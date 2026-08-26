@@ -284,6 +284,94 @@
           "muscle": "quadriceps"
         }
       ]
+    },
+    {
+      "id": 1787748000307,
+      "savedAt": "2026-08-26T12:40:00.307Z",
+      "fitnessLevel": "beginner",
+      "workoutType": "strength",
+      "durationMin": 30,
+      "totalSec": 1684,
+      "restSec": 60,
+      "equipment": [
+        "bodyweight"
+      ],
+      "targetMuscles": [],
+      "injuries": [],
+      "exercises": [
+        {
+          "name": "Plank Lunges",
+          "sets": 1,
+          "duration": 50,
+          "muscle": "abs"
+        },
+        {
+          "name": "Arm Crossover Curtsy",
+          "sets": 1,
+          "duration": 75,
+          "muscle": "quadriceps"
+        },
+        {
+          "name": "Bird-Dog",
+          "sets": 1,
+          "duration": 60,
+          "muscle": "glutes"
+        },
+        {
+          "name": "Bodyweight Good Morning",
+          "sets": 1,
+          "duration": 90,
+          "muscle": "hamstrings"
+        },
+        {
+          "name": "Knee Push-Up",
+          "sets": 2,
+          "duration": 60,
+          "muscle": "chest"
+        },
+        {
+          "name": "Side Tilts",
+          "sets": 1,
+          "duration": 90,
+          "muscle": "back"
+        },
+        {
+          "name": "Contralateral Limb Raise",
+          "sets": 1,
+          "duration": 90,
+          "muscle": "lower_back"
+        },
+        {
+          "name": "Standing Y-Raise",
+          "sets": 1,
+          "duration": 90,
+          "muscle": "shoulders"
+        },
+        {
+          "name": "Bodyweight Walking Calf Raise",
+          "sets": 1,
+          "duration": 60,
+          "muscle": "calves"
+        },
+        {
+          "name": "Lying Biceps Curl with Towel",
+          "sets": 1,
+          "duration": 75,
+          "muscle": "biceps"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Right)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "abs"
+        },
+        {
+          "name": "Hip-Flexor Stretch (Left)",
+          "sets": 1,
+          "duration": 22,
+          "muscle": "abs"
+        }
+      ]
     }
   ]
 }

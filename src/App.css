@@ -214,6 +214,9 @@
   margin-top: auto;
 }
 
+.pool-info.low  { color: #facc15; }
+.pool-info.none { color: #f87171; font-weight: 600; }
+
 .build-btn {
   width: 100%;
   padding: 12px;
@@ -228,8 +231,9 @@
   transition: opacity 0.15s, transform 0.1s;
 }
 
-.build-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.build-btn:active { transform: translateY(0); opacity: 1; }
+.build-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.build-btn:active:not(:disabled) { transform: translateY(0); opacity: 1; }
+.build-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .rules-btn {
   width: 100%;
@@ -517,6 +521,33 @@
 .ex-play.no-video { background: transparent; color: #334155; cursor: default; }
 .ex-play.no-video:hover { transform: none; }
 
+.ex-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ex-swap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1e2a3a;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, color 0.15s;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.ex-swap:hover { background: #1e3a5f; color: #60a5fa; transform: rotate(90deg); }
+.ex-swap.failed { background: #3a1e1e; color: #f87171; }
+.ex-swap.failed:hover { transform: none; }
+
 .ex-video-wrap {
   background: #0f1117;
   display: flex;
@@ -592,6 +623,19 @@
 .restore-btn:hover {
   background: #1e3a5f;
   border-color: #60a5fa;
+}
+
+/* Responsive — stack panels on narrow screens */
+@media (max-width: 760px) {
+  .app { height: auto; overflow: visible; }
+  .app-body { grid-template-columns: 1fr; overflow: visible; }
+  .filter-panel {
+    border-right: none;
+    border-bottom: 1px solid #1e2a3a;
+    overflow-y: visible;
+  }
+  .result-panel { overflow-y: visible; }
+  .result-summary { flex-wrap: wrap; gap: 16px; }
 }
 
 /* Scrollbar styling */

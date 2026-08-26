@@ -8,8 +8,9 @@ const MUSCLE_COLORS = {
 };
 
 // One card per exercise group (all sets of the same exercise)
-function ExerciseGroup({ exList, index, targetMuscles, gender }) {
+function ExerciseGroup({ exList, index, targetMuscles, gender, onSwap }) {
   const [videoOpen, setVideoOpen] = useState(false);
+  const [swapFailed, setSwapFailed] = useState(false);
   const ex      = exList[0];
   const sets    = exList.length;
   const primary = ex.targetMuscle || ex.primary[0] || 'abs';
@@ -29,6 +30,15 @@ function ExerciseGroup({ exList, index, targetMuscles, gender }) {
   const videoUrl   = (gender === 'female' && ex.female_video_url)   ? ex.female_video_url   : ex.video_url;
   const previewUrl = (gender === 'female' && ex.female_preview_url) ? ex.female_preview_url : ex.preview_url;
   const hasVideo   = !!videoUrl;
+
+  const handleSwap = () => {
+    const ok = onSwap?.(ex.name);
+    if (!ok) {
+      // No eligible alternative — flash feedback on the button
+      setSwapFailed(true);
+      setTimeout(() => setSwapFailed(false), 1500);
+    }
+  };
 
   return (
     <div className="ex-row-wrap">
@@ -51,17 +61,26 @@ function ExerciseGroup({ exList, index, targetMuscles, gender }) {
         <div className="ex-right">
           <span className="ex-sets-badge">{sets} × {ex.assignedDuration}s</span>
           <span className="ex-mets">mets {ex.mets}</span>
-          {hasVideo ? (
+          <div className="ex-actions">
+            {hasVideo ? (
+              <button
+                className={`ex-play ${videoOpen ? 'active' : ''}`}
+                onClick={() => setVideoOpen(v => !v)}
+                title={videoOpen ? 'Close video' : 'Preview exercise'}
+              >
+                {videoOpen ? '✕' : '▶'}
+              </button>
+            ) : (
+              <span className="ex-play no-video" title="No video available">—</span>
+            )}
             <button
-              className={`ex-play ${videoOpen ? 'active' : ''}`}
-              onClick={() => setVideoOpen(v => !v)}
-              title={videoOpen ? 'Close video' : 'Preview exercise'}
+              className={`ex-swap ${swapFailed ? 'failed' : ''}`}
+              onClick={handleSwap}
+              title={swapFailed ? 'No alternative found' : 'Swap for a similar exercise'}
             >
-              {videoOpen ? '✕' : '▶'}
+              {swapFailed ? '✕' : '↻'}
             </button>
-          ) : (
-            <span className="ex-play no-video" title="No video available">—</span>
-          )}
+          </div>
         </div>
       </div>
 
@@ -92,7 +111,7 @@ function HistoryItem({ entry, index, onRestore }) {
       <div className="history-meta">
         <span className="history-time">#{index + 1} · {time}</span>
         <span className="history-summary">
-          {entry.params.fitnessLevel} · {entry.params.durationMin}min ·{' '}
+          {entry.params.fitnessLevel} · {entry.params.workoutType} · {entry.params.durationMin}min ·{' '}
           {entry.result.exercises.length} exercises
         </span>
       </div>
@@ -101,7 +120,7 @@ function HistoryItem({ entry, index, onRestore }) {
   );
 }
 
-export default function WorkoutResult({ result, params, history, onRestore, onBuild, gender }) {
+export default function WorkoutResult({ result, params, history, onRestore, onSwap, gender }) {
   if (!result) {
     return (
       <div className="result-panel empty">
@@ -127,12 +146,6 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
     }
   }
 
-  // Unique exercise count (pairs share one slot)
-  const uniqueBaseNames = new Set(
-    exercises.map(e => e.name.replace(/\s*\((Right|Left)\)/g, '').trim())
-  );
-  const uniqueCount = uniqueBaseNames.size;
-
   // Muscle distribution (use targetMuscle so it reflects user's selection)
   const muscleCount = {};
   for (const e of exercises) {
@@ -157,6 +170,10 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
           <div className="summary-stat">
             <span className="stat-val">{totalMin}m{totalS > 0 ? `${totalS}s` : ''}</span>
             <span className="stat-label">duration</span>
+          </div>
+          <div className="summary-stat">
+            <span className="stat-val">{result.restSec ?? 30}s</span>
+            <span className="stat-label">rest</span>
           </div>
           <div className="summary-stat">
             <span className="stat-val">{params.fitnessLevel}</span>
@@ -187,7 +204,7 @@ export default function WorkoutResult({ result, params, history, onRestore, onBu
         ) : (
           exerciseGroups.map((group, i) => (
             <React.Fragment key={group[0].name + i}>
-              <ExerciseGroup exList={group} index={i} targetMuscles={params.targetMuscles} gender={gender} />
+              <ExerciseGroup exList={group} index={i} targetMuscles={params.targetMuscles} gender={gender} onSwap={onSwap} />
               {i < exerciseGroups.length - 1 && (
                 <div className="rest-separator">
                   <span className="rest-label">REST — {group[0].restSec ?? result.restSec ?? 30}s</span>
