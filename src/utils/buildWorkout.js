@@ -57,6 +57,7 @@ export const DEFAULT_RULES = {
   obeseBmiThreshold: 30,
   obeseNoPlyometric: true,
   obeseNoHighImpact: true,
+  femaleVideosOnly: true,
   durationCapMap: { 15: 1, 30: 2, 45: 3, 60: 4 },
   // Rest time between exercises
   restTimeBeginner_strength: 60,
@@ -77,8 +78,11 @@ const pairName = name => name.includes('(Right)')
  * Single source of truth for getPoolSize, buildWorkout and swapExercise.
  */
 function passesFilters(e, params, rules) {
-  const { fitnessLevel, equipment, injuries, workoutType, strictBeginner, bmiValue } = params;
+  const { fitnessLevel, equipment, injuries, workoutType, strictBeginner, bmiValue, gender } = params;
   const bmiObese = (bmiValue ?? 0) >= (rules.obeseBmiThreshold ?? 30);
+
+  // Female users only get exercises that have a female demo video
+  if (gender === 'female' && rules.femaleVideosOnly && !e.female_video_url) return false;
 
   const hasEquip =
     (equipment.has('bodyweight') && e.bodyweight) ||

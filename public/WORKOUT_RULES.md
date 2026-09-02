@@ -36,6 +36,8 @@ obeseBmiThreshold: 30
 obeseNoPlyometric: true
 obeseNoHighImpact: true
 
+femaleVideosOnly: true
+
 durationCapMap_15: 1
 durationCapMap_30: 2
 durationCapMap_45: 3
@@ -84,6 +86,7 @@ durationCapMap_60: 4
 - Back pain: exclude spinal loading, high-mets core exercises
 - CVD: exclude high-intensity cardio (MET > 6), plyometrics
 - BMI ≥ `obeseBmiThreshold` (default 30, "Obese" range): exclude plyometrics and high-impact/deep-knee-stress exercises (same exclusion set as knee injury)
+- Female gender + `femaleVideosOnly`: only exercises that have a female demo video (~74% of the database)
 
 ### Progression for beginners (Challenges)
 - Workouts 1–3: 10 min, level 1 only, MET ≤ 3.5
